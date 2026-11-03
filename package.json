@@ -1,0 +1,22 @@
+{
+  "name": "osint-atlas",
+  "version": "1.2.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=24.22.1 <25"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "build": "node build.mjs",
+    "check": "node check.mjs",
+    "test": "node --test worker.test.mjs research.test.mjs verification.test.mjs desktop.test.mjs",
+    "build:exe": "node scripts/build-exe.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "postject": "1.0.0-alpha.6",
+    "qrcode-generator": "1.4.4"
+  }
+}

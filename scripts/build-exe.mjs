@@ -1,0 +1,20 @@
+import {cp,mkdir,readdir,writeFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {build} from 'esbuild';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+if(process.platform!=='win32'||process.arch!=='x64')throw Error('Build Atlas.exe on Windows x64 with Node.js 24.22.1.');
+const run=(args)=>{const r=spawnSync(process.execPath,args,{cwd:root,stdio:'inherit',windowsHide:true});if(r.status!==0)throw Error('Build step failed: '+args[0]);};
+run(['build.mjs']);
+const output=path.join(root,'.build'),release=path.join(root,'release');await mkdir(output,{recursive:true});await mkdir(release,{recursive:true});
+await build({entryPoints:[path.join(root,'desktop/entry.mjs')],outfile:path.join(output,'atlas.cjs'),bundle:true,platform:'node',format:'cjs',target:'node24',legalComments:'inline'});
+const assets={};
+async function walk(dir,prefix=''){for(const entry of await readdir(dir,{withFileTypes:true})){const relative=prefix+entry.name,file=path.join(dir,entry.name);if(entry.isDirectory())await walk(file,relative+'/');else assets['client/'+relative]=file;}}
+await walk(path.join(root,'dist/client'));
+for(const name of ['THIRD_PARTY_NOTICES.md','NODE-LICENSE.txt'])assets[name]=path.join(root,name);
+const config={main:path.join(output,'atlas.cjs'),output:path.join(output,'atlas.blob'),disableExperimentalSEAWarning:true,useSnapshot:false,useCodeCache:false,assets};
+await writeFile(path.join(output,'sea-config.json'),JSON.stringify(config));run(['--experimental-sea-config',path.join(output,'sea-config.json')]);
+const exe=path.join(release,'Atlas.exe');await cp(process.execPath,exe);
+run([path.join(root,'node_modules/postject/dist/cli.js'),exe,'NODE_SEA_BLOB',path.join(output,'atlas.blob'),'--sentinel-fuse','NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2']);
+console.log(`Built ${exe}; embedded ${Object.keys(assets).length} assets. No Node.js installation required.`);

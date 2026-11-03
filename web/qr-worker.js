@@ -1,0 +1,2 @@
+import jsQR from './vendor/jsqr.js';
+self.onmessage=e=>{try{const {buffer,width,height}=e.data;if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width*height>4500000||buffer.byteLength!==width*height*4)throw Error('Неподдерживаемый размер изображения.');const code=jsQR(new Uint8ClampedArray(buffer),width,height,{inversionAttempts:'attemptBoth'});self.postMessage({ok:true,code:code?{data:code.data,version:code.version}:null});}catch(error){self.postMessage({ok:false,error:error.message});}};

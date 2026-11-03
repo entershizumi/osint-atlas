@@ -1,0 +1,10 @@
+import {readFile,writeFile,copyFile,mkdir} from 'node:fs/promises';
+import path from 'node:path';
+await mkdir('web/vendor',{recursive:true});
+const qr=await readFile('integrations/node_modules/jsqr/dist/jsQR.js','utf8');
+await writeFile('web/vendor/jsqr.js',`// jsQR 1.4.0 — original CommonJS bundle wrapped as an ES module. Apache-2.0.\nconst module={exports:{}};const exports=module.exports;\n${qr}\nexport default module.exports;\n`);
+await copyFile('integrations/node_modules/jsqr/LICENSE','web/vendor/jsqr-LICENSE.txt');
+const pkg=JSON.parse(await readFile('integrations/node_modules/suncalc/package.json','utf8'));
+await copyFile(path.join('integrations/node_modules/suncalc',pkg.module||'suncalc.js'),'web/vendor/suncalc.js');
+await copyFile('integrations/node_modules/suncalc/LICENSE','web/vendor/suncalc-LICENSE.txt');
+console.log('Vendored jsQR and SunCalc with original licenses.');

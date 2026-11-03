@@ -1,0 +1,1 @@
+{"name":"atlas-local-integrations","version":"1.0.0","private":true,"type":"module","dependencies":{"jsqr":"1.4.0","suncalc":"2.1.1"},"devDependencies":{"qrcode-generator":"1.4.4"}}

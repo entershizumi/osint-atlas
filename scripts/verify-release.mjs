@@ -1,0 +1,11 @@
+import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import assert from 'node:assert/strict';
+import {unzipSync,strFromU8} from '../web/vendor/fflate.js';
+const sourceBytes=new Uint8Array(await readFile(new URL('../release/Atlas-GitHub-Source.zip',import.meta.url)));
+const names=[];const source=unzipSync(sourceBytes,{filter:file=>{names.push(file.name);assert(!file.name.split('/').some(p=>['.git','.openai','.sites-runtime','node_modules','.build','release','github-auth'].includes(p)),file.name);assert(!file.name.split('/').some(p=>/^\.env(?:\.|$)/.test(p)),file.name);return ['README.md','package.json','build.mjs','desktop/runtime.mjs','web/index.html','worker/index.js','pnpm-lock.yaml'].some(p=>file.name==='osint-atlas/'+p);}});
+assert(names.length>3000);for(const name of ['README.md','package.json','build.mjs','desktop/runtime.mjs','web/index.html','worker/index.js','pnpm-lock.yaml'])assert(source['osint-atlas/'+name],name);
+assert(strFromU8(source['osint-atlas/web/index.html']).includes('scenario-company'));assert.equal(JSON.parse(strFromU8(source['osint-atlas/package.json'])).version,'1.2.0');
+const win=unzipSync(new Uint8Array(await readFile(new URL('../release/Atlas-Windows-x64.zip',import.meta.url))));for(const name of ['Atlas.exe','NODE-LICENSE.txt','THIRD_PARTY_NOTICES.md','README.md','START-HERE.txt'])assert(win[name],name);
+assert.equal(createHash('sha256').update(win['Atlas.exe']).digest('hex'),createHash('sha256').update(await readFile(new URL('../release/Atlas.exe',import.meta.url))).digest('hex'));
+console.log(`Release verified: ${names.length} source files; no hosting identity, Git history, installed dependencies or environment files; Windows ZIP contains the exact tested EXE and licenses.`);
